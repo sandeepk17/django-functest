@@ -8,7 +8,6 @@ import signal
 import sys
 import warnings
 
-import django
 import faulthandler
 from django.conf import settings
 from django.core.management import execute_from_command_line
@@ -166,15 +165,16 @@ elif 'TEST_FIREFOX_BINARY' in os.environ:
 if known_args.skip_selenium:
     os.environ['TEST_SKIP_SELENIUM'] = "TRUE"
 
+if known_args.verbosity is None and 'TRAVIS' in os.environ:
+    known_args.verbosity = 2
+
 if known_args.update_migration:
     initial_migration = "django_functest/tests/migrations/0001_initial.py"
     if os.path.exists(initial_migration):
         os.unlink(initial_migration)
     argv = [sys.argv[0], "makemigrations", "tests"] + sys.argv[2:]
 else:
-    argv = [sys.argv[0], "test", "--noinput"]
-    if django.VERSION >= (1, 8):
-        argv.append("--keepdb")
+    argv = [sys.argv[0], "test", "--noinput", "--keepdb"]
     if known_args.verbosity:
         argv.extend(["-v", str(known_args.verbosity)])
     if len(test_args) == 0:
